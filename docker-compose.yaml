@@ -1,0 +1,55 @@
+version: "3.1"
+services:
+  app:
+    image: mateze50
+    container_name: mateze50_php
+    build: 
+      context: .
+      dockerfile: .
+    restart: always
+    ports:
+      - 80:80
+      - 8000:8000
+    volumes:
+      - ./:/var/www/html
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - mateze50_net
+
+    command: "php artisan serve --host=0.0.0.0 --port=8000"
+
+   
+
+  db:
+    image: mysql:latest
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - db-data:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql
+    networks:
+      - mateze50_net
+   
+  
+  phpmyadmin:
+    image: phpmyadmin:5.2.0-apache
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      - mateze50_net
+
+
+networks:
+  mateze50_net:
+    driver: bridge
+
+
+
+volumes:
+  db-data:
+  
