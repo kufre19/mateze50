@@ -16,7 +16,8 @@ return [
         "2"=> "multimedia system",
         "3" => "supercharger",
         "4"=> "other accessory",
-        "q"=>"What do you want to install?"
+        "alternative_opt"=>["option"=>"4","ask"=>"What do you want to install?"],
+        "q"=>"What type of accessory do you want to change/ add to you car?"
     ],
     "02"=>[
         

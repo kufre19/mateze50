@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 use App\Models\Session;
-
+use Illuminate\Support\Facades\Config;
 
 trait HandleSession {
 
@@ -28,7 +28,14 @@ trait HandleSession {
     
     public function start_new_session()
     {
-        $data = ["is_step_active"=>0,"conversation"=>[],"steps"=>[]];
+        $data = [
+            "is_step_active"=>0,
+            "conversation"=>[],
+            "steps"=>[],
+            "current_user_respons" => null,
+            "current_step" => 0,
+            "next_step" => 0,
+        ];
         $json = json_encode($data);
         $model = new Session();
         $model->user_id = $this->userphone;
@@ -65,7 +72,14 @@ trait HandleSession {
     public function update_session($data = null)
     {
         if ($data == null) {
-            $data = ["is_step_active"=>0,"conversation"=>[],"steps"=>[]];
+            $data = [
+                "is_step_active"=>0,
+                "conversation"=>[],
+                "steps"=>[],
+                "current_user_respons" => null,
+                "current_step" => 0,
+                "next_step" => 0,
+            ];
             $data = json_encode($data);
         } else {
             $data = json_encode($data);
@@ -90,6 +104,12 @@ trait HandleSession {
         $this->update_session($this->user_session_data);
 
 
+    }
+
+    public function make_step_active($data = 0)
+    {
+        $this->user_session_data['is_step_active'] = $data;
+        $this->update_session($this->user_session_data);
     }
 
     public function save_new_conversation($data)
@@ -127,7 +147,11 @@ trait HandleSession {
             {
                 $conversation = ["q"=>$command_value["q"],"ans"=>$command_value[$message]];
                 $this->save_new_conversation($conversation);
+                $step = Config::get("steps.".$message);
                 $command = ["command"=>"run steps","command_value"=>""];
+                $this->add_command_to_session($command);
+                $this->make_step_active(1);
+                $this->add_steps_to_session($step);
                 // dd($this->user_session_data);
             }
         }
