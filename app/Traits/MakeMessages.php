@@ -81,7 +81,7 @@ trait MakeMessages {
         $text = "What do you want to do now";
         $data = $this->make_button_message($this->userphone,"Select option",$text,$button);
         $this->send_post_curl($data);
-        die;
+        
     }
     public function make_button_message($to,$header_text,$body_text,$buttons,$preview_url=false)
     {

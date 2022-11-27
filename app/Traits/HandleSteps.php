@@ -146,6 +146,7 @@ trait HandleSteps
     public function load_form($step_value)
     {
         $command = ["command"=>"run form","command_value"=>""];
+        $this->increace_current_step();
         $this->add_command_to_session($command);
         $this->add_form_to_session($step_value);
         $this->run_form_index($step_value);
@@ -311,16 +312,20 @@ trait HandleSteps
     public function end_step()
     {
 
-        $collected_info = [];
-        $conversation = [];
+        $collected_info = $this->user_session_data['global_variables'];
+        $conversation = $this->user_session_data['conversation'];
+
         $webhook_data = json_encode(["conversation"=>$conversation,"collected_info"=>$collected_info]) ;
         $this->send_end_button();
+        $this->send_to_webhook($webhook_data);
+        $this->update_session();
 
     }
 
     public function send_to_webhook($post_data)
     {
         // $token = env("WB_TOKEN");
+        dd($post_data);
         $url = env("WEBHOOK_URL");
 
         $curl = curl_init();

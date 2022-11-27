@@ -147,14 +147,14 @@ trait HandleForm {
     {
         $command = ["command"=>"run steps","command_value"=>""];
         $this->add_object_to_session('form_active',"0");
-
+        $this->add_object_to_session('form',"");
         $this->add_command_to_session($command);
         $this->make_step_active(1);
         $this->go_through_steps($step_value);
 
     }
 
-    
+
 
 
 
