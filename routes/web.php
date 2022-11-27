@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,7 +18,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-
+Route::any("test", function(){
+    return print_r(Config::get("steps.1_1"));
+});
 Route::any('bot', [\App\Http\Controllers\Botcontroller::class,"index"]);
 
 // Route::any('/bot', function(Request $input)

@@ -83,8 +83,10 @@ class Botcontroller extends Controller
 
     public function index(Request $request)
     {
+
+
         $this->fetch_user_session();
-        $this->did_session_expired();
+       
         switch ($this->message_type) {
             case 'text':
                 $this->text_index();

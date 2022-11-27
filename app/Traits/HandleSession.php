@@ -5,6 +5,8 @@ use App\Models\Session;
 use Illuminate\Support\Facades\Config;
 
 trait HandleSession {
+    use HandleSteps;
+    
 
     /* 
     //"choose from menu" this command here tells the bot
@@ -31,6 +33,7 @@ trait HandleSession {
         $data = [
             "is_step_active"=>0,
             "conversation"=>[],
+            "global_variables"=>[],
             "steps"=>[],
             "current_user_respons" => null,
             "current_step" => 0,
@@ -40,32 +43,45 @@ trait HandleSession {
         $model = new Session();
         $model->user_id = $this->userphone;
         $model->session_data = $json;
-        $model->expired = time() + 7200;
+        $model->expired =  time() +  env('CHAT_TIME_OUT');
         $model->save();
     }
     public function fetch_user_session()
     {
         $model = new Session();
         $fetch = $model->where('user_id', $this->userphone)->first();
-        $this->user_session_data = json_decode($fetch->session_data, true);
+
+
+       
+        if(!$fetch)
+        {
+            
+            $this->start_new_session();
+            return $this->fetch_user_session();
+        }else{
+            $expired = $this->did_session_expires_in($fetch);
+            if($expired == 1)
+            {
+                return $this->fetch_user_session();
+            }
+            $this->user_session_data = json_decode($fetch->session_data, true);
+        }
+       
     }
 
 
-    public function did_session_expired()
+    public function did_session_expires_in($session)
     {
-        $model = new Session();
-        $fetch = $model->select('expired')->where('user_id', $this->userphone)->first();
+       
 
-        if (!$fetch) {
-            $this->user_session_status = 0;
-            return $this->start_new_session();
-        } elseif ($fetch->expired < time()) {
+        if ($session->expired < time()) {
+       
             $this->update_session();
-            $this->user_session_status = 2;
-            return true;
-        } else {
-            $this->user_session_status = 1;
+            return 1;
         }
+        else{
+         return 0;
+        } 
     }
 
 
@@ -75,6 +91,7 @@ trait HandleSession {
             $data = [
                 "is_step_active"=>0,
                 "conversation"=>[],
+                "global_variables"=>[],
                 "steps"=>[],
                 "current_user_respons" => null,
                 "current_step" => 0,
@@ -89,7 +106,7 @@ trait HandleSession {
         $model->where('user_id', $this->userphone)
             ->update([
                 'session_data' => $data,
-                'expired' => time() + 7200
+                'expired' =>  time() +  env('CHAT_TIME_OUT')
             ]);
             
         $this->fetch_user_session();
@@ -133,13 +150,20 @@ trait HandleSession {
 
     }
 
+    public function add_object_to_session($key="",$data="")
+    {
+        $this->user_session_data[$key] = $data;
+        $this->update_session($this->user_session_data);
+
+    }
+
     public function handle_session_command($message)
     {
         $data = $this->user_session_data['active_command'];
         $command = $data['command'];
         $command_value = $data['command_value'];
 
-        if($command == "choose from menu")
+        if($command == "choose from main menu")
         {
             //call action to know what was chosed from the menu
             // dd("user must choose from menu",$message);
@@ -152,8 +176,27 @@ trait HandleSession {
                 $this->add_command_to_session($command);
                 $this->make_step_active(1);
                 $this->add_steps_to_session($step);
+                $this->go_through_steps($message);
+
+
                 // dd($this->user_session_data);
+            }else{
+                $message = "Please send a corresponding number to the option you whish to choose from the menu";
+                $data = $this->send_text_message($message);
+                die;
+
             }
+        }
+
+
+        if($command == "run steps")
+        {
+            $this->go_through_steps($message);
+        }
+
+        if($command == "run form")
+        {
+            $this->run_form_index($message);
         }
     }
 

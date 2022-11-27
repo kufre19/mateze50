@@ -5,12 +5,13 @@ namespace App\Traits;
 use Illuminate\Support\Facades\Config;
 
 trait HandleText{
-    use MakeMessages, HandleSession;
+
 
     public $text_intent;
 
     public function text_index()
     {
+       
         $this->find_text_intent();
         if ($this->text_intent == "greetings") {
             $this->update_session();
@@ -29,6 +30,7 @@ trait HandleText{
     public function find_text_intent()
     {
         $message = $this->user_message_lowered;
+        $message_original =  $this->user_message_original;
 
         $greetings = Config::get("text_intentions.greetings");
         $menu = Config::get("text_intentions.menu");
@@ -43,7 +45,7 @@ trait HandleText{
          elseif (isset($this->user_session_data['active_command'])) {
             // dd("im here");
             if (!empty($this->user_session_data['active_command'])) {
-                $this->handle_session_command($message);
+                $this->handle_session_command($message_original);
             }
         } else {
             $this->text_intent = "others";
